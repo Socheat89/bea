@@ -1,0 +1,330 @@
+:root {
+  --bg-color: #1a202c;
+  --felt-color: #2d3748;
+  --card-bg: #fff;
+  --card-width: 80px;
+  --card-height: 112px;
+  --primary: #4299e1;
+  --success: #48bb78;
+  --danger: #f56565;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--bg-color);
+  color: white;
+  overflow: hidden;
+  /* Prevent scroll on game area */
+  height: 100vh;
+  width: 100vw;
+}
+
+#root {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  width: 100%;
+}
+
+.app-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Lobby */
+.lobby-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  background: var(--felt-color);
+  padding: 40px;
+  border-radius: 12px;
+  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.3);
+  text-align: center;
+}
+
+.lobby-input {
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #4a5568;
+  background: #2d3748;
+  color: white;
+  width: 250px;
+}
+
+.btn {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  background: var(--primary);
+  color: white;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.2s;
+}
+
+.btn:hover {
+  filter: brightness(1.1);
+}
+
+.btn-secondary {
+  background: #718096;
+}
+
+.btn-success {
+  background: var(--success);
+}
+
+.btn-danger {
+  background: var(--danger);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Game Room */
+.game-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #0d324d 0%, #1a202c 100%);
+  /* Modern gradient instead of plain felt */
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Played Cards Area (Center) */
+.play-area {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 60%;
+  height: 40%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  /* border: 1px dashed rgba(255,255,255,0.1); For debugging */
+  border-radius: 16px;
+}
+
+/* Card Styling */
+.card {
+  width: var(--card-width);
+  height: var(--card-height);
+  background: var(--card-bg);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 5px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  position: relative;
+  user-select: none;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  font-weight: bold;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+}
+
+.card.selected {
+  transform: translateY(-20px);
+  box-shadow: 0 0 10px var(--primary);
+  border: 2px solid var(--primary);
+}
+
+.card.red {
+  color: #e53e3e;
+}
+
+.card.black {
+  color: #1a202c;
+}
+
+.card-top-left {
+  font-size: 14px;
+  text-align: left;
+}
+
+.card-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 32px;
+}
+
+.card-bottom-right {
+  font-size: 14px;
+  text-align: right;
+  transform: rotate(180deg);
+}
+
+.card-back {
+  background: linear-gradient(45deg, #2b6cb0 25%, #2c5282 25%, #2c5282 50%, #2b6cb0 50%, #2b6cb0 75%, #2c5282 75%, #2c5282 100%);
+  background-size: 20px 20px;
+  border: 2px solid white;
+}
+
+/* Hands Layout */
+.hand-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: -40px;
+  /* Overlap */
+}
+
+.my-hand {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+}
+
+.my-hand .card {
+  margin-right: -40px;
+}
+
+/* Improved overlap */
+.my-hand .card:last-child {
+  margin-right: 0;
+}
+
+.other-player {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.player-top {
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.player-left {
+  top: 50%;
+  left: 20px;
+  transform: translateY(-50%);
+}
+
+.player-right {
+  top: 50%;
+  right: 20px;
+  transform: translateY(-50%);
+}
+
+.avatar {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: #4a5568;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 24px;
+  border: 2px solid white;
+  position: relative;
+}
+
+.turn-indicator {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: var(--success);
+  border: 2px solid white;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(72, 187, 120, 0.7);
+  }
+
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 10px rgba(72, 187, 120, 0);
+  }
+
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(72, 187, 120, 0);
+  }
+}
+
+.player-info {
+  background: rgba(0, 0, 0, 0.5);
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.controls {
+  position: absolute;
+  bottom: 160px;
+  /* Above hand */
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 10px;
+  z-index: 20;
+}
+
+/* Chat */
+.chat-container {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  width: 300px;
+  height: 200px;
+  background: rgba(0, 0, 0, 0.7);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  z-index: 50;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.chat-messages {
+  flex: 1;
+  padding: 10px;
+  overflow-y: auto;
+  font-size: 12px;
+}
+
+.chat-input-area {
+  display: flex;
+  padding: 5px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.chat-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: white;
+  padding: 5px;
+}
