@@ -30,12 +30,16 @@ const Card = ({ card, isSelected, onClick, isFaceDown }) => {
         <div
             className={`card ${isRed ? 'red' : 'black'} ${isSelected ? 'selected' : ''}`}
             onClick={onClick}
-            // Negative margin for hand spreading effect
-            style={{ marginLeft: '-40px' }}
         >
-            <div className="card-top-left">{displayRank}</div>
+            <div className="card-top-left">
+                <div>{displayRank}</div>
+                <div className="small-suit">{displaySuit}</div>
+            </div>
             <div className="card-center">{displaySuit}</div>
-            <div className="card-bottom-right">{displayRank}</div>
+            <div className="card-bottom-right">
+                <div>{displayRank}</div>
+                <div className="small-suit">{displaySuit}</div>
+            </div>
         </div>
     );
 };

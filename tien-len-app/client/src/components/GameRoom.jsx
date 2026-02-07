@@ -46,21 +46,27 @@ const GameRoom = ({ roomId, initialPlayers }) => {
             setLastPlay(null);
             setFinishedPlayers([]);
             setWinner(null);
-            setMessage("Game Started!");
+            setMessage("ចាប់ផ្តើមលេង! (Game Started)");
         });
 
         socket.on('turn_update', (data) => {
             setTurnIndex(data.turnIndex);
-            if (data.lastPlay) setLastPlay(data.lastPlay);
+
             if (data.isNewRound) {
-                setLastPlay(null);
-                setMessage("New Round!");
+                setMessage("ចប់មួយជុំ! (Round Finished)");
+                // Delay clearing the board so users see the winning play
+                setTimeout(() => {
+                    setLastPlay(null);
+                    setMessage("ចូលជុំថ្មី! (New Round)");
+                }, 2000);
+            } else {
+                if (data.lastPlay) setLastPlay(data.lastPlay);
             }
         });
 
         socket.on('player_action', (data) => {
             if (data.type === 'PASS') {
-                setMessage(`Player passed`);
+                setMessage(`អ្នកលេងបាន Pass`);
             } else if (data.type === 'PLAY') {
                 setLastPlay({ cards: data.cards, playerId: data.playerId });
 
@@ -197,16 +203,16 @@ const GameRoom = ({ roomId, initialPlayers }) => {
                             ))}
                         </div>
                         {players.length < 2 ? (
-                            <p style={{ color: '#cbd5e0' }}>Waiting for at least 1 more player...</p>
+                            <p style={{ color: '#cbd5e0' }}>រង់ចាំអ្នកលេងយ៉ាងតិច ១ នាក់ទៀត...</p>
                         ) : (
-                            <button className="btn btn-success" onClick={startGame}>Start Game</button>
+                            <button className="btn btn-success" onClick={startGame}>ចាប់ផ្តើម</button>
                         )}
                     </div>
                 )}
 
                 {winner && (
                     <div style={{ background: 'rgba(0,0,0,0.9)', padding: 20, borderRadius: 16, border: '2px solid gold', minWidth: 300 }}>
-                        <h2 style={{ color: 'gold' }}>Game Over!</h2>
+                        <h2 style={{ color: 'gold' }}>ចប់ការប្រកួត! (Game Over)</h2>
                         <div style={{ textAlign: 'left' }}>
                             {finishedPlayers.map((fp) => {
                                 const p = players.find(x => x.id === fp.playerId);
@@ -217,7 +223,7 @@ const GameRoom = ({ roomId, initialPlayers }) => {
                                 );
                             })}
                         </div>
-                        <button className="btn btn-primary" style={{ marginTop: 20 }} onClick={startGame}>Play Again</button>
+                        <button className="btn btn-primary" style={{ marginTop: 20 }} onClick={startGame}>លេងម្តងទៀត (Play Again)</button>
                     </div>
                 )}
 
@@ -264,11 +270,11 @@ const GameRoom = ({ roomId, initialPlayers }) => {
                     <div className="controls">
                         {isMyTurn && (
                             <>
-                                <button className="btn btn-success" onClick={playCards} disabled={selectedIndices.length === 0}>Play</button>
-                                <button className="btn btn-danger" onClick={passTurn}>Pass</button>
+                                <button className="btn btn-success" onClick={playCards} disabled={selectedIndices.length === 0}>ចាក់ (Play)</button>
+                                <button className="btn btn-danger" onClick={passTurn}>ផាស (Pass)</button>
                             </>
                         )}
-                        <button className="btn btn-secondary" onClick={() => setHand([...hand].sort((a, b) => (a.rank * 10 + a.suit) - (b.rank * 10 + b.suit)))}>Sort</button>
+                        <button className="btn btn-secondary" onClick={() => setHand([...hand].sort((a, b) => (a.rank * 10 + a.suit) - (b.rank * 10 + b.suit)))}>រៀបបៀ (Sort)</button>
                     </div>
                 )}
 
