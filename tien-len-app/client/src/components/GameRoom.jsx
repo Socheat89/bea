@@ -188,28 +188,38 @@ const GameRoom = ({ roomId, initialPlayers }) => {
                 position: 'absolute',
                 top: 10,
                 left: 10,
-                background: 'rgba(0,0,0,0.6)',
-                padding: '10px',
-                borderRadius: 8,
+                background: 'rgba(0,0,0,0.5)',
+                backdropFilter: 'blur(10px)',
+                padding: '15px 20px',
+                borderRadius: '16px',
+                border: '1px solid rgba(255,255,255,0.1)',
+                boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
                 zIndex: 100,
-                textAlign: 'left'
+                textAlign: 'left',
+                minWidth: '200px'
             }}>
-                <h3 style={{ margin: 0, color: '#48bb78' }}>Room: {roomId}</h3>
-                <p style={{ margin: '5px 0 0 0', fontSize: 12 }}>Share code with friends!</p>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <p style={{ margin: 0, fontSize: 12 }}>Players: {players.length}/4</p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#2ecc71', boxShadow: '0 0 10px #2ecc71' }}></div>
+                    <h3 style={{ margin: 0, color: 'white', fontSize: '1.2rem', textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>Room: {roomId}</h3>
+                </div>
+                <p style={{ margin: '5px 0 0 20px', fontSize: 12, opacity: 0.8 }}>Share code with friends!</p>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 10, paddingLeft: 20 }}>
+                    <p style={{ margin: 0, fontSize: 13, fontWeight: 'bold' }}>Players: {players.length}/4</p>
                     <button
                         onClick={resetGame}
                         style={{
                             marginLeft: 10,
-                            padding: '2px 5px',
-                            fontSize: 10,
-                            background: '#e53e3e',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: 4,
-                            cursor: 'pointer'
+                            padding: '6px 12px',
+                            fontSize: 11,
+                            background: 'rgba(231, 76, 60, 0.2)',
+                            color: '#e74c3c',
+                            border: '1px solid #e74c3c',
+                            borderRadius: 6,
+                            cursor: 'pointer',
+                            transition: 'all 0.2s'
                         }}
+                        onMouseOver={(e) => { e.currentTarget.style.background = '#e74c3c'; e.currentTarget.style.color = 'white'; }}
+                        onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(231, 76, 60, 0.2)'; e.currentTarget.style.color = '#e74c3c'; }}
                     >
                         New Game
                     </button>
@@ -229,7 +239,16 @@ const GameRoom = ({ roomId, initialPlayers }) => {
                 {message && <div style={{ background: 'rgba(0,0,0,0.8)', padding: '10px 20px', borderRadius: 8, marginBottom: 10, display: 'inline-block' }}>{message}</div>}
 
                 {gameStatus === 'WAITING' && (
-                    <div style={{ background: 'rgba(0,0,0,0.8)', padding: 30, borderRadius: 16, pointerEvents: 'auto', border: '1px solid #4a5568' }}>
+                    <div style={{
+                        background: 'rgba(0,0,0,0.6)',
+                        backdropFilter: 'blur(10px)',
+                        padding: 40,
+                        borderRadius: 24,
+                        pointerEvents: 'auto',
+                        border: '1px solid rgba(255,255,255,0.1)',
+                        boxShadow: '0 20px 50px rgba(0,0,0,0.5)',
+                        minWidth: 300
+                    }}>
                         <h2 style={{ marginTop: 0 }}>Waiting for players...</h2>
                         <div style={{ marginBottom: 20 }}>
                             {players.map(p => (
@@ -245,7 +264,15 @@ const GameRoom = ({ roomId, initialPlayers }) => {
                 )}
 
                 {winner && (
-                    <div style={{ background: 'rgba(0,0,0,0.9)', padding: 20, borderRadius: 16, border: '2px solid gold', minWidth: 300 }}>
+                    <div style={{
+                        background: 'rgba(0,0,0,0.8)',
+                        backdropFilter: 'blur(10px)',
+                        padding: 30,
+                        borderRadius: 24,
+                        border: '2px solid gold',
+                        minWidth: 300,
+                        boxShadow: '0 0 50px rgba(255, 215, 0, 0.3)'
+                    }}>
                         <h2 style={{ color: 'gold' }}>ចប់ការប្រកួត! (Game Over)</h2>
                         <div style={{ textAlign: 'left' }}>
                             {finishedPlayers.map((fp) => {
