@@ -105,13 +105,16 @@ io.on('connection', (socket) => {
         const game = games[roomId];
         if (!game) return;
 
+        const player = game.players.find(p => p.id === socket.id);
+        if (!player) return;
+
         // Verify valid logic
         // Need to reconstruct card objects if simplified data sent
         // Assuming client sends full card objects {rank, suit}
 
-        const result = game.playTurn(socket.id, cards);
+        const result = game.playTurn(player.id, cards);
         if (result.valid) {
-            // Update all clients
+            // Update all clients about the move
             io.to(roomId).emit('player_action', {
                 type: 'PLAY',
                 playerId: socket.id,
@@ -119,13 +122,26 @@ io.on('connection', (socket) => {
                 remainingCards: game.players.find(p => p.id === socket.id).hand.length
             });
 
+            // Check if player finished their hand
+            if (result.finished) {
+                io.to(roomId).emit('player_finished', {
+                    playerId: socket.id,
+                    rank: result.finishedRank
+                });
+            }
+
             if (result.gameOver) {
-                io.to(roomId).emit('game_over', { winnerId: socket.id });
-                game.status = 'FINISHED';
+                // Game completely over (only 1 player left)
+                io.to(roomId).emit('game_over', {
+                    winnerId: game.winner, // First winner
+                    finishedPlayers: result.finishedPlayers
+                });
+                // Reset status handled in next start_game
             } else {
                 io.to(roomId).emit('turn_update', {
                     turnIndex: game.currentTurnIndex,
-                    lastPlay: game.lastPlay
+                    lastPlay: game.lastPlay,
+                    isNewRound: !game.lastPlay // If lastPlay is null, it means new round started
                 });
             }
         } else {
@@ -180,6 +196,17 @@ io.on('connection', (socket) => {
                 }
                 break;
             }
+        }
+    });
+
+    // Reset Game (New Game)
+    socket.on('reset_game', (data) => {
+        const { roomId } = data;
+        const game = games[roomId];
+        if (game) {
+            game.resetGame();
+            io.to(roomId).emit('game_reset', { players: game.players });
+            console.log(`Game ${roomId} reset by ${socket.id}`);
         }
     });
 });

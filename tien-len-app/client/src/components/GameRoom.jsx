@@ -98,6 +98,16 @@ const GameRoom = ({ roomId, initialPlayers }) => {
 
         socket.on('error', (data) => setMessage(data.message));
 
+        socket.on('game_reset', (data) => {
+            setPlayers(data.players);
+            setHand([]);
+            setGameStatus('WAITING');
+            setWinner(null);
+            setFinishedPlayers([]);
+            setLastPlay(null);
+            setMessage("បានចាប់ផ្តើមហ្គេមថ្មី! (Game Reset)");
+        });
+
         return () => {
             socket.off('update_players');
             socket.off('game_started');
@@ -106,9 +116,16 @@ const GameRoom = ({ roomId, initialPlayers }) => {
             socket.off('player_finished');
             socket.off('game_over');
             socket.off('receive_message');
+            socket.off('game_reset');
             socket.off('error');
         };
     }, []);
+
+    const resetGame = () => {
+        if (window.confirm("តើអ្នកច្បាស់ទេថាចង់ចាប់ផ្តើមហ្គេមថ្មី? (Restart Game?)")) {
+            socket.emit('reset_game', { roomId });
+        }
+    };
 
     const toggleSelect = (index) => {
         if (selectedIndices.includes(index)) {
@@ -179,7 +196,24 @@ const GameRoom = ({ roomId, initialPlayers }) => {
             }}>
                 <h3 style={{ margin: 0, color: '#48bb78' }}>Room: {roomId}</h3>
                 <p style={{ margin: '5px 0 0 0', fontSize: 12 }}>Share code with friends!</p>
-                <p style={{ margin: 0, fontSize: 12 }}>Players: {players.length}/4</p>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <p style={{ margin: 0, fontSize: 12 }}>Players: {players.length}/4</p>
+                    <button
+                        onClick={resetGame}
+                        style={{
+                            marginLeft: 10,
+                            padding: '2px 5px',
+                            fontSize: 10,
+                            background: '#e53e3e',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: 4,
+                            cursor: 'pointer'
+                        }}
+                    >
+                        New Game
+                    </button>
+                </div>
             </div>
 
             {/* Center Messages / Start Button */}

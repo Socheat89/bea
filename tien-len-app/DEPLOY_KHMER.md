@@ -1,48 +1,43 @@
 
-# របៀបឱ្យគេលេងបានដោយមិនបាច់ Host (Deployment Guide)
+# របៀបដាក់ឱ្យគេលេងបានដោយមិនបាច់ Host (Deployment Guide)
 
-ដើម្បីឱ្យមិត្តភក្តិរបស់អ្នកអាចលេងបានគ្រប់ពេលដោយមិនចាំបាច់អោយអ្នកបើកកុំព្យូទ័រចោល អ្នកត្រូវ **Deploy** កម្មវិធីនេះទៅលើ Server (Cloud)។
-ខាងក្រោមនេះជារបៀបប្រើ **Render (Free)**:
+ឥឡូវនេះកូដរបស់អ្នកស្ថិតនៅលើ GitHub ហើយ (`https://github.com/Socheat89/bea`)។
+ជំហានបន្ទាប់គឺដាក់វាឱ្យដំណើរការនៅលើ **Render (Free)**៖
 
-## 1. រៀបចំកូដ (Prepare for Deployment)
+## 1. ចុះឈ្មោះ និងបង្កើតសេវាកម្ម
 
-អ្នកត្រូវមានគណនី GitHub ហើយធ្វើការ Push កូដទាំងអស់ទៅកាន់ Repository ថ្មីមួយ។
+1. ចូលទៅកាន់ **[render.com](https://render.com)**
+2. ចុច **Sign In** -> ជ្រើសរើស **GitHub** (Sign in with GitHub)
+3. ចុចប៊ូតុង **New +** (ខាងស្តាំលើ) -> ជ្រើសរើស **Web Service**
 
-1. **បង្កើត GitHub Repository**
-   - ចូលទៅ [github.com](https://github.com)
-   - ចុច "New Repository"
-   - ដាក់ឈ្មោះ (ឧទាហរណ៍: `tien-len-game`)
-   - ចុច "Create repository"
+## 2. ភ្ជាប់ជាមួយ GitHub
 
-2. **Push កូដទៅ GitHub**
-   បើក Terminal របស់អ្នកនៅ `d:\bea\tien-len-app` ហើយវាយពាក្យបញ្ជាខាងក្រោម៖
-   ```bash
-   git init
-   git add .
-   git commit -m "Initial commit"
-   git branch -M main
-   # ជំនួស URL ខាងក្រោមដោយ URL នៃ Repository របស់អ្នក
-   git remote add origin https://github.com/YOUR_USERNAME/tien-len-game.git
-   git push -u origin main
-   ```
+1. នៅក្រោម "Connect a repository", ស្វែងរក `bea` ឬ `Socheat89/bea`
+2. ចុចប៊ូតុង **Connect**
 
-## 2. Deploy ទៅ Render (Free)
+## 3. កំណត់ការកំណត់ (Settings) - **សំខាន់ណាស់!**
 
-1. **ចុះឈ្មោះនៅ [render.com](https://render.com)** (អាចប្រើ GitHub Login)
-2. ចុច **New +** -> **Web Service**
-3. ជ្រើសរើស Repository ដែលអ្នកទើបតែបង្កើត (`tien-len-game`)
-4. បំពេញព័ត៌មានដូចខាងក្រោម៖
-   - **Name**: `tien-len-game` (ឬឈ្មោះផ្សេង)
-   - **Region**: Singapore (ជិតនិងលឿន) (Singapore is recommended for Asia users)
-   - **Branch**: `main`
-   - **Root Directory**: `.` (ទុកទំនេរ)
-   - **Runtime**: `Node`
-   - **Environment**: Node
-   - **Build Command**: `cd client && npm install && npm run build && cd ../server && npm install`
-   - **Start Command**: `node server/index.js`
-5. ចុច **Create Web Service**
+បំពេញព័ត៌មាននៅក្នុងទម្រង់បែបបទដូចខាងក្រោម៖
 
-## 3. លេងបានហើយ!
+| Setting | Value (ត្រូវដាក់ឱ្យដូច) |
+| :--- | :--- |
+| **Name** | `tien-len-game` (ឬឈ្មោះអ្វីក៏បាន) |
+| **Region** | `Singapore` (ដើម្បីឱ្យលឿន) |
+| **Branch** | `main` |
+| **Root Directory** | `tien-len-app` |
+| **Runtime** | `Node` |
+| **Build Command** | `cd client && npm install && npm run build && cd ../server && npm install` |
+| **Start Command** | `node server/index.js` |
 
-បន្ទាប់ពី Deploy ចប់ (ប្រហែល 3-5 នាទី), Render នឹងផ្តល់ URL មួយឱ្យអ្នក (ឧទាហរណ៍: `https://tien-len-game.onrender.com`)។
-អ្នកគ្រាន់តែCopy Link នេះផ្ញើទៅមិត្តភក្តិ ពួកគេនឹងអាចលេងបានភ្លាមៗ ទោះបីជាអ្នកបិទកុំព្យូទ័រក៏ដោយ!
+*ចំណាំ៖ កុំភ្លេចដាក់ **Root Directory** ជា `tien-len-app` ព្រោះកូដស្ថិតនៅក្នុង Folder នោះ។*
+
+## 4. ចុច Deploy
+
+1. អូសចុះក្រោម រួចជ្រើសរើស **Free** Plan.
+2. ចុចប៊ូតុង **Create Web Service**.
+
+## 5. រង់ចាំ និងលេង
+
+- Render នឹងចាប់ផ្តើមដំឡើង (អាចចំណាយពេល ៣-៥ នាទី)។
+- បន្ទាប់ពីវាចេញពណ៌បៃតង (**Live**), អ្នកនឹងឃើញ Link នៅខាងលើ (ឧទាហរណ៍: `https://tien-len-game.onrender.com`)។
+- ចុច Link នោះ ហើយផ្ញើទៅមិត្តភក្តិដើម្បីលេង!

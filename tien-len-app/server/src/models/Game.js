@@ -31,7 +31,9 @@ class Game {
         this.currentTurnIndex = 0;
         this.lastPlay = null; // { cards: [], playerId: '...' }
         this.roundHistory = [];
+        this.roundHistory = [];
         this.winner = null;
+        this.finishedPlayers = []; // List of player IDs in order of finish
     }
 
     addPlayer(player) {
@@ -59,6 +61,7 @@ class Game {
         this.deck = shuffle(createDeck());
         this.status = 'PLAYING';
         this.lastPlay = null;
+        this.finishedPlayers = [];
         this.players.forEach(p => {
             p.hand = [];
             p.passed = false;
@@ -100,6 +103,23 @@ class Game {
 
         this.currentTurnIndex = starterIndex;
         return true;
+    }
+
+    resetGame() {
+        this.status = 'WAITING';
+        this.deck = [];
+        this.currentTurnIndex = 0;
+        this.lastPlay = null;
+        this.roundHistory = [];
+        this.winner = null;
+        this.finishedPlayers = [];
+        this.players.forEach(p => {
+            p.hand = [];
+            p.score = 0;
+            p.passed = false;
+            p.ready = false;
+            delete p.finishedRank;
+        });
     }
 
     playTurn(playerId, cards) {
@@ -151,84 +171,116 @@ class Game {
         this.lastPlay = { cards, playerId };
         this.roundHistory.push({ playerId, cards });
 
-        // Reset pass status for all? 
-        // No, in Tien Len, if you play, previous passers are still passed until round ends.
-
-        // Check win
-        if (player.hand.length === 0) {
-            this.status = 'FINISHED';
-            this.winner = playerId;
-            return { valid: true, gameOver: true };
+        // Check if player exhausted hand
+        let justFinished = false;
+        if (newHand.length === 0) {
+            this.finishedPlayers.push(playerId);
+            player.finishedRank = this.finishedPlayers.length; // 1st, 2nd, 3rd...
+            justFinished = true;
         }
 
+        // Check Game Over (Only 1 active player left)
+        const activeCount = this.players.filter(p => p.hand.length > 0).length;
+
+        if (activeCount <= 1) {
+            // If 1 player left, add them as last rank
+            const lastPlayer = this.players.find(p => p.hand.length > 0);
+            if (lastPlayer) {
+                this.finishedPlayers.push(lastPlayer.id);
+                lastPlayer.finishedRank = this.finishedPlayers.length;
+            }
+
+            this.status = 'FINISHED';
+            this.winner = this.finishedPlayers[0]; // First one who finished is winner
+            return { valid: true, gameOver: true, finishedPlayers: this.finishedPlayers };
+        }
+
+        // If player just finished, they can't continue the round, but their cards serve as the "lastPlay" to beat.
+        // The round continues until everyone passes on their cards.
+
         this.nextTurn();
-        return { valid: true, gameOver: false };
+        return { valid: true, gameOver: false, finished: justFinished, finishedRank: player.finishedRank };
     }
 
     passTurn(playerId) {
         const playerIndex = this.players.findIndex(p => p.id === playerId);
-        if (playerIndex !== this.currentTurnIndex) return { valid: false, message: "Not your turn" };
+        const player = this.players[playerIndex];
 
+        if (playerIndex !== this.currentTurnIndex) return { valid: false, message: "Not your turn" };
         if (!this.lastPlay) return { valid: false, message: "Cannot pass on free turn" };
 
-        this.players[playerIndex].passed = true;
+        player.passed = true;
         this.nextTurn();
         return { valid: true };
     }
 
     nextTurn() {
-        // Find next player who hasn't passed
+        // Find next player who hasn't passed AND hasn't finished (empty hand)
         let nextIndex = (this.currentTurnIndex + 1) % this.players.length;
-        let attempts = 0;
+        let controlId = this.lastPlay ? this.lastPlay.playerId : null; // The player who controls the round
 
-        // While next player has passed or (variant: finished?), keep skipping
-        // In Tien Len, once you pass, you are out of the round (until everyone passes).
-        // If everyone passes except one, that one gets a free turn (new round).
+        // If the control player finished their hand, who controls the round?
+        // Logic: if I finish, my cards are still on table. People must beat them.
+        // If everyone passes, the round ends. Who starts next?
+        // Standard rule: The person next to the finished player starts the new round.
+        // However, standard Tien Len usually says if you finish and everyone passes, 
+        // the person to your right (or next active) starts.
 
-        // Check if round ended (all other active players passed)
-        // Active players = players with cards.
+        // Loop to find next candidate
+        const count = this.players.length;
+        let foundNext = false;
 
-        const activePlayers = this.players.filter(p => p.hand.length > 0);
-        // Note: players with 0 cards might still be in game technically if considering 2nd/3rd place, 
-        // but typically game ends immediately or continues for rank. 
-        // MVP: End on first winner.
+        for (let i = 0; i < count; i++) {
+            const p = this.players[nextIndex];
 
-        // Count how many active players passed (in this round)
-        // If all other active players passed, then current `lastPlay.playerId` wins the round.
-        // Wait, `lastPlay.playerId` is the one who played the beatable cards.
+            // Check if we wrapped around to the person who holds control
+            if (controlId && p.id === controlId) {
+                // Round finished! Everyone else passed.
+                // Reset passes
+                this.players.forEach(pl => pl.passed = false);
+                this.lastPlay = null;
 
-        // If everyone else passed after me, I start new round.
-        // We need to check if the `nextIndex` is the `lastPlay.playerId`.
-        // If we circle back to the person who made the last play, and everyone else passed, they win the round.
+                // But wait, the control player might have finished their hand!
+                if (p.hand.length === 0) {
+                    // If the winner of the round has no cards, 
+                    // the lead passes to the next active player after them.
+                    let nextActive = nextIndex;
+                    for (let j = 0; j < count; j++) {
+                        nextActive = (nextActive + 1) % count;
+                        if (this.players[nextActive].hand.length > 0) {
+                            this.currentTurnIndex = nextActive;
+                            return;
+                        }
+                    }
+                } else {
+                    // Winner still has cards, they start new round.
+                    this.currentTurnIndex = nextIndex;
+                    return;
+                }
+            }
 
-        // Let's loop until we find a non-passed player.
-        // If we loop back to `lastPlay.playerId` (and they are still in game), they get free turn.
+            // Normal check: valid player to take turn?
+            // Must have cards and not passed.
+            if (p.hand.length > 0 && !p.passed) {
+                this.currentTurnIndex = nextIndex;
+                foundNext = true;
+                break;
+            }
 
-        if (!this.lastPlay) {
-            // Should not happen here if passTurn logic correct, but if new game...
-            this.currentTurnIndex = nextIndex; // Simple rotate
-            return;
+            nextIndex = (nextIndex + 1) % count;
         }
 
-        let loopCount = 0;
-        while (this.players[nextIndex].passed || this.players[nextIndex].hand.length === 0) {
-            nextIndex = (nextIndex + 1) % this.players.length;
-            loopCount++;
-            if (loopCount > this.players.length) break; // Should not happen
-        }
-
-        const lastPlayerId = this.lastPlay.playerId;
-
-        // If only one player left who hasn't passed?
-        // Logic: if `nextIndex` corresponds to `lastPlayerId`, user wins round.
-        if (this.players[nextIndex].id === lastPlayerId) {
-            // Round finished.
-            // Reset passes.
-            this.players.forEach(p => p.passed = false);
-            this.lastPlay = null;
-            this.currentTurnIndex = nextIndex; // Winner starts new round
-        } else {
-            this.currentTurnIndex = nextIndex;
+        if (!foundNext) {
+            // Edge case: should be handled by controlId check usually.
+            // If we are here, likely new round start or weird state.
+            // Just find first active player.
+            for (let i = 0; i < count; i++) {
+                nextIndex = (this.currentTurnIndex + 1 + i) % count;
+                if (this.players[nextIndex].hand.length > 0) {
+                    this.currentTurnIndex = nextIndex;
+                    return;
+                }
+            }
         }
     }
 }
