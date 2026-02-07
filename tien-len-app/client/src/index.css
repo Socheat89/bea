@@ -2,8 +2,8 @@
   --bg-color: #1a202c;
   --felt-color: #2d3748;
   --card-bg: #fff;
-  --card-width: 80px;
-  --card-height: 112px;
+  --card-width: 100px;
+  --card-height: 140px;
   --primary: #4299e1;
   --success: #48bb78;
   --danger: #f56565;
@@ -157,7 +157,7 @@ body {
 }
 
 .card-top-left {
-  font-size: 14px;
+  font-size: 18px;
   text-align: left;
 }
 
@@ -166,11 +166,11 @@ body {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  font-size: 32px;
+  font-size: 48px;
 }
 
 .card-bottom-right {
-  font-size: 14px;
+  font-size: 18px;
   text-align: right;
   transform: rotate(180deg);
 }

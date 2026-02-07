@@ -11,6 +11,7 @@ const GameRoom = ({ roomId, initialPlayers }) => {
     const [gameStatus, setGameStatus] = useState('WAITING');
     const [message, setMessage] = useState('');
     const [winner, setWinner] = useState(null);
+    const [finishedPlayers, setFinishedPlayers] = useState([]); // Array of { playerId, rank }
 
     // Chat State
     const [chatMessages, setChatMessages] = useState([]);
@@ -41,7 +42,10 @@ const GameRoom = ({ roomId, initialPlayers }) => {
             setTurnIndex(data.turnIndex);
             setGameStatus('PLAYING');
             setPlayers(data.players);
+            setPlayers(data.players);
             setLastPlay(null);
+            setFinishedPlayers([]);
+            setWinner(null);
             setMessage("Game Started!");
         });
 
@@ -70,9 +74,15 @@ const GameRoom = ({ roomId, initialPlayers }) => {
             }
         });
 
+        socket.on('player_finished', (data) => {
+            setFinishedPlayers(prev => [...prev, data]);
+            setMessage(prev => `${prev ? prev + ' ' : ''}Player Finished Rank #${data.rank}!`);
+        });
+
         socket.on('game_over', (data) => {
             setGameStatus('FINISHED');
             setWinner(data.winnerId);
+            setFinishedPlayers(data.finishedPlayers.map((id, index) => ({ playerId: id, rank: index + 1 })));
             setMessage("Game Over!");
         });
 
@@ -87,6 +97,7 @@ const GameRoom = ({ roomId, initialPlayers }) => {
             socket.off('game_started');
             socket.off('turn_update');
             socket.off('player_action');
+            socket.off('player_finished');
             socket.off('game_over');
             socket.off('receive_message');
             socket.off('error');
@@ -193,9 +204,22 @@ const GameRoom = ({ roomId, initialPlayers }) => {
                     </div>
                 )}
 
-                {winner && <div style={{ fontSize: 32, color: 'gold', background: 'rgba(0,0,0,0.9)', padding: 20, borderRadius: 16, border: '2px solid gold' }}>
-                    Winner: {winner === socket.id ? 'YOU!' : players.find(p => p.id === winner)?.name || 'Unknown'}
-                </div>}
+                {winner && (
+                    <div style={{ background: 'rgba(0,0,0,0.9)', padding: 20, borderRadius: 16, border: '2px solid gold', minWidth: 300 }}>
+                        <h2 style={{ color: 'gold' }}>Game Over!</h2>
+                        <div style={{ textAlign: 'left' }}>
+                            {finishedPlayers.map((fp) => {
+                                const p = players.find(x => x.id === fp.playerId);
+                                return (
+                                    <div key={fp.playerId} style={{ fontSize: 20, margin: '10px 0', color: fp.playerId === socket.id ? '#48bb78' : 'white' }}>
+                                        #{fp.rank}: {p ? p.name : 'Unknown'} {fp.playerId === socket.id ? '(You)' : ''}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                        <button className="btn btn-primary" style={{ marginTop: 20 }} onClick={startGame}>Play Again</button>
+                    </div>
+                )}
 
                 {isMyTurn && <div style={{ color: 'yellow', fontWeight: 'bold', fontSize: 24, textShadow: '0 0 10px black', background: 'rgba(0,0,0,0.5)', padding: '5px 15px', borderRadius: 20, display: 'inline-block' }}>YOUR TURN</div>}
             </div>
@@ -208,15 +232,20 @@ const GameRoom = ({ roomId, initialPlayers }) => {
                 else if (others.length === 3) posClass = i === 0 ? 'player-left' : i === 1 ? 'player-top' : 'player-right';
 
                 const isTurn = players[turnIndex]?.id === p.id;
+                const isFinished = finishedPlayers.find(fp => fp.playerId === p.id);
 
                 return (
                     <div key={p.id} className={`other-player ${posClass}`}>
-                        <div className={`avatar ${isTurn ? 'turn-active' : ''}`} style={{ borderColor: isTurn ? '#48bb78' : 'white' }}>
-                            {p.name.charAt(0)}
-                            {isTurn && <div className="turn-indicator"></div>}
+                        <div className={`avatar ${isTurn ? 'turn-active' : ''}`} style={{ borderColor: isTurn ? '#48bb78' : isFinished ? 'gold' : 'white' }}>
+                            {isFinished ? (
+                                <span style={{ color: 'gold', fontWeight: 'bold' }}>#{isFinished.rank}</span>
+                            ) : (
+                                p.name.charAt(0)
+                            )}
+                            {isTurn && !isFinished && <div className="turn-indicator"></div>}
                         </div>
                         <div className="player-info">{p.name} | Cards: {p.handCount !== undefined ? p.handCount : (p.hand ? p.hand.length : 0)}</div>
-                        {p.passed && <div style={{ color: 'red', fontSize: 10, background: 'rgba(0,0,0,0.5)', padding: '0 4px', borderRadius: 2 }}>PASSED</div>}
+                        {p.passed && !isFinished && <div style={{ color: 'red', fontSize: 10, background: 'rgba(0,0,0,0.5)', padding: '0 4px', borderRadius: 2 }}>PASSED</div>}
                     </div>
                 );
             })}
@@ -254,7 +283,8 @@ const GameRoom = ({ roomId, initialPlayers }) => {
                     ))}
                 </div>
 
-                {myPlayer && myPlayer.passed && <div style={{ color: '#fc8181', textAlign: 'center', marginTop: 10, fontWeight: 'bold', fontSize: 18, textShadow: '0 0 5px black' }}>YOU PASSED</div>}
+                {myPlayer && myPlayer.passed && !finishedPlayers.find(fp => fp.playerId === socket.id) && <div style={{ color: '#fc8181', textAlign: 'center', marginTop: 10, fontWeight: 'bold', fontSize: 18, textShadow: '0 0 5px black' }}>YOU PASSED</div>}
+                {finishedPlayers.find(fp => fp.playerId === socket.id) && <div style={{ color: 'gold', textAlign: 'center', marginTop: 10, fontWeight: 'bold', fontSize: 24, textShadow: '0 0 5px black' }}>YOU FINISHED #{finishedPlayers.find(fp => fp.playerId === socket.id).rank}!</div>}
             </div>
 
             {/* Chat */}
